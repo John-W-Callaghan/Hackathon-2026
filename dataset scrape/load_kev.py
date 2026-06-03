@@ -30,7 +30,6 @@ def download_kev(url: str, dest: Path) -> None:
         # DNS failure, connection refused, timeout, etc.
         raise SystemExit(f"Network error: {exc.reason}") from exc
 
-    # Create parent directories (dataset/CISA-KEV/) if they don't exist yet
     dest.parent.mkdir(parents=True, exist_ok=True)
     dest.write_bytes(raw)
     print(f"Saved → {dest}  ({len(raw):,} bytes)\n")

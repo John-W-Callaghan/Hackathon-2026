@@ -95,30 +95,9 @@ def extract_description(record: dict) -> str:
 # ---------------------------------------------------------------------------
 # Stage 3: Normalise assets → CPE fragment map
 # ---------------------------------------------------------------------------
+from epss_loader import epss_raw
 
-def build_asset_cpe_map(assets: list[str]) -> dict[str, list[str]]:
-    """
-    Return { asset_name: [cpe_fragment, ...] } for every asset that resolves.
-
-    Assets with no CPE match are excluded; normalise() already prints a
-    WARNING for each one, so unmatched assets are never silent.
-    """
-    print("=== Normalising assets ===")
-    asset_map: dict[str, list[str]] = {}
-    unmatched: list[str] = []
-
-    for asset in assets:
-        fragments = normalise(asset)
-        if fragments:
-            asset_map[asset] = fragments
-        else:
-            unmatched.append(asset)
-
-    print(f"\n  {len(asset_map)} assets resolved, {len(unmatched)} unmatched.")
-    if unmatched:
-        print(f"  Unmatched (no CVEs will be returned): {unmatched}")
-    print()
-    return asset_map
+matches = match_cves(records, asset_cpe_map, epss_dict=epss_raw)
 
 
 # ---------------------------------------------------------------------------

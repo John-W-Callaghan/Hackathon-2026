@@ -2,7 +2,7 @@
 import json
 
 
-with open('CVE-2024.json') as f:
+with open('data/CVE-2024.json') as f:
     cve_data = json.load(f)
 
 records = cve_data['cve_items']  # this is confirmed correct for your file
@@ -57,3 +57,54 @@ for record in records:
         found += 1
         if found == 5:
             break
+
+
+# === HOUR 2: Find real CPE strings from your CVE data ===
+
+def find_cpe_strings(keyword, records, max_results=10):
+    found = set()
+    for record in records:
+        for node in record.get('configurations', []):
+            for subnode in node.get('nodes', []):
+                for match in subnode.get('cpeMatch', []):
+                    criteria = match['criteria']
+                    if keyword.lower() in criteria.lower():
+                        parts = criteria.split(':')
+                        if len(parts) >= 5:
+                            found.add(f"{parts[3]}:{parts[4]}")
+    return list(found)[:max_results]
+
+# Search for all 12 sample assets
+searches = [
+    "openssl",
+    "apache",
+    "wordpress",
+    "moodle",
+    "chrome",
+    "cisco",
+    "zoom",
+    "vmware",
+    "adobe",
+    "windows_10",
+    "windows_server",
+    "365_apps",
+]
+
+print("=== CPE strings found in CVE-2024.json ===\n")
+for term in searches:
+    results = find_cpe_strings(term, records)
+    print(f"{term:20s} → {results}")
+
+# Fill the gaps with targeted searches
+gaps = [
+    "acrobat_reader",
+    "acrobat_dc", 
+    "ios_xe",
+    "http_server",
+    "windows_server_2022",
+]
+
+print("=== Targeted searches ===\n")
+for term in gaps:
+    results = find_cpe_strings(term, records)
+    print(f"{term:25s} → {results}")

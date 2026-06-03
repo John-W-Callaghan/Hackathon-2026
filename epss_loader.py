@@ -7,6 +7,10 @@ Dicts produced:
   epss_percentile : { cve_id -> float }   pre-computed percentile (0–1)
   epss_normalised : { cve_id -> float }   min-max normalised EPSS score (0–1)
   epss_combined   : { cve_id -> dict }    all three values per CVE
+
+Usage from matcher.py (Stage 3):
+  from epss_loader import epss_raw, epss_normalised
+  matches = match_cves(records, asset_cpe_map, epss_dict=epss_raw)
 """
 
 import csv        # for parsing the CSV rows inside the gz file
@@ -94,14 +98,14 @@ def build_combined(
 
     Example output entry:
         "CVE-1999-0003": {
-            "epss":           0.90626,
-            "percentile":     0.99629,
+            "epss":            0.90626,
+            "percentile":      0.99629,
             "epss_normalised": 0.95880,
         }
     """
-    # Dict comprehension iterating over all CVE IDs from the raw dict
+    # Dict comprehension iterating over all CVE IDs from the raw dict.
     # We assume all three dicts have the same keys (they will, since
-    # normalised is derived from raw, and percentile was loaded alongside it)
+    # normalised is derived from raw, and percentile was loaded alongside it).
     return {
         cve: {
             "epss": raw[cve],
@@ -112,9 +116,10 @@ def build_combined(
     }
 
 
-# ── Main ─────────────────────────────────────────────────────────────────────
-# This runs top-to-bottom when you execute the script directly.
-# The three function calls below build all four dicts in sequence.
+# ── Module-level data ─────────────────────────────────────────────────────────
+# These run on import, so matcher.py can do:
+#   from epss_loader import epss_raw, epss_normalised
+# The dicts are built once and reused — no need to call load_epss() yourself.
 
 epss_raw, epss_percentile = load_epss(FILE_PATH)   # load raw data from file
 epss_normalised = normalise_minmax(epss_raw)        # normalise the EPSS scores
@@ -122,35 +127,41 @@ epss_combined = build_combined(                     # merge into one dict
     epss_raw, epss_percentile, epss_normalised
 )
 
-# ── Quick sanity check ───────────────────────────────────────────────────────
-# Print a summary so you can visually confirm the data loaded correctly
 
-print(f"Loaded {len(epss_raw):,} CVEs\n")
+# ── Standalone run ────────────────────────────────────────────────────────────
+# Everything below only executes when you run this file directly:
+#   python epss_loader.py
+#
+# When matcher.py imports this file, Python skips this whole block.
+# That means no surprise print output when the pipeline runs.
 
-# Grab the first 5 CVE IDs to use as a preview sample
-sample_cves = list(epss_raw.keys())[:5]
+if __name__ == "__main__":
 
-# f-string format spec:  <20 = left-align in 20 chars,  >10 = right-align in 10
-print(f"{'CVE':<20}  {'raw EPSS':>10}  {'percentile':>10}  {'normalised':>10}")
-print("-" * 58)
-for cve in sample_cves:
-    print(
-        f"{cve:<20}  {epss_raw[cve]:>10.5f}  "
-        f"{epss_percentile[cve]:>10.5f}  {epss_normalised[cve]:>10.5f}"
-    )
+    # Print a summary so you can visually confirm the data loaded correctly
+    print(f"Loaded {len(epss_raw):,} CVEs\n")
 
-# Convert to lists so we can call min/max (dict_values doesn't support it twice)
-raw_vals = list(epss_raw.values())
-norm_vals = list(epss_normalised.values())
-print(f"\nRaw  EPSS  — min: {min(raw_vals):.5f}  max: {max(raw_vals):.5f}")
-print(f"Norm EPSS  — min: {min(norm_vals):.5f}  max: {max(norm_vals):.5f}")
+    # Grab the first 5 CVE IDs to use as a preview sample
+    sample_cves = list(epss_raw.keys())[:5]
 
-# ── Example lookups ──────────────────────────────────────────────────────────
-# Shows how to pull data out of each dict once you have a CVE ID
+    # f-string format spec:  <20 = left-align in 20 chars,  >10 = right-align in 10
+    print(f"{'CVE':<20}  {'raw EPSS':>10}  {'percentile':>10}  {'normalised':>10}")
+    print("-" * 58)
+    for cve in sample_cves:
+        print(
+            f"{cve:<20}  {epss_raw[cve]:>10.5f}  "
+            f"{epss_percentile[cve]:>10.5f}  {epss_normalised[cve]:>10.5f}"
+        )
 
-cve = "CVE-1999-0003"
-print(f"\nLookup example — {cve}:")
-print(f"  epss_raw[cve]        = {epss_raw[cve]}")
-print(f"  epss_percentile[cve] = {epss_percentile[cve]}")
-print(f"  epss_normalised[cve] = {epss_normalised[cve]:.6f}")
-print(f"  epss_combined[cve]   = {epss_combined[cve]}")  # all three at once
+    # Convert to lists so we can call min/max (dict_values doesn't support it twice)
+    raw_vals = list(epss_raw.values())
+    norm_vals = list(epss_normalised.values())
+    print(f"\nRaw  EPSS  — min: {min(raw_vals):.5f}  max: {max(raw_vals):.5f}")
+    print(f"Norm EPSS  — min: {min(norm_vals):.5f}  max: {max(norm_vals):.5f}")
+
+    # Shows how to pull data out of each dict once you have a CVE ID
+    cve = "CVE-1999-0003"
+    print(f"\nLookup example — {cve}:")
+    print(f"  epss_raw[cve]        = {epss_raw[cve]}")
+    print(f"  epss_percentile[cve] = {epss_percentile[cve]}")
+    print(f"  epss_normalised[cve] = {epss_normalised[cve]:.6f}")
+    print(f"  epss_combined[cve]   = {epss_combined[cve]}")  # all three at once

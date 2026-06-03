@@ -3,7 +3,7 @@ matcher.py — CVE matching stage (Hour 3)
 
 Pipeline:  normalisation.py → [matcher.py] → ranker.py
 
-Resolves each asset name to CPE fragments, scans all 39,110 CVE records
+Resolves each asset name to CPE fragments, scans all CVE records
 for those fragments, and returns an enriched list of matches ready for
 ranking in Hour 4.
 
@@ -21,7 +21,7 @@ from normalisation import normalise, KEV_PATH
 # Paths
 # ---------------------------------------------------------------------------
 
-CVE_FILE = Path(__file__).parent / "dataset" / "NVD-CVE" / "CVE-2024.json"
+CVE_DIR = Path(__file__).parent / "dataset" / "NVD-CVE"
 
 # ---------------------------------------------------------------------------
 # Sample asset list (12 entries from the project brief)
@@ -47,14 +47,26 @@ SAMPLE_ASSETS = [
 # Stage 1: Load CVE records
 # ---------------------------------------------------------------------------
 
-def load_cve_records(path: Path = CVE_FILE) -> list[dict]:
-    """Load the NVD CVE JSON and return the flat list of CVE records."""
-    print(f"Loading CVE records from {path} ...")
-    with path.open(encoding="utf-8") as fh:
-        data = json.load(fh)
-    records = data["cve_items"]
-    print(f"  Loaded {len(records):,} CVE records.\n")
-    return records
+def load_cve_records(directory: Path = CVE_DIR) -> list[dict]:
+    """
+    Load all CVE-YYYY.json files found in directory and return the combined
+    list of records. Files are processed in filename order (2024 before 2025).
+    """
+    cve_files = sorted(directory.glob("CVE-*.json"))
+    if not cve_files:
+        raise SystemExit(f"No CVE JSON files found in {directory}")
+
+    all_records: list[dict] = []
+    for path in cve_files:
+        print(f"Loading CVE records from {path} ...")
+        with path.open(encoding="utf-8") as fh:
+            data = json.load(fh)
+        records = data["cve_items"]
+        print(f"  Loaded {len(records):,} records.")
+        all_records.extend(records)
+
+    print(f"  Total: {len(all_records):,} CVE records across {len(cve_files)} file(s).\n")
+    return all_records
 
 
 # ---------------------------------------------------------------------------
@@ -72,6 +84,21 @@ def extract_cpe_strings(record: dict) -> list[str]:
             for match in subnode.get("cpeMatch", []):
                 cpe_strings.append(match["criteria"])
     return cpe_strings
+
+
+def _cpe_vendor_product(cpe_string: str) -> str:
+    """
+    Extract the vendor:product portion from a full CPE 2.3 string.
+
+    CPE format: cpe:2.3:<type>:<vendor>:<product>:<version>:...
+    Index:          0   1    2       3        4         5
+
+    Returns "vendor:product", or "" if the string is malformed.
+    """
+    parts = cpe_string.split(":")
+    if len(parts) >= 5:
+        return f"{parts[3]}:{parts[4]}"
+    return ""
 
 
 def extract_cvss(record: dict) -> float | None:
@@ -167,9 +194,10 @@ def match_cves(
             continue
 
         for asset, fragments in asset_cpe_map.items():
-            # Any fragment in any CPE string is a hit for this asset
+            # Exact vendor:product match — avoids substring false positives
+            # e.g. "windows_server_2022" must not match "windows_server_2022_23h2"
             hit = any(
-                fragment in cpe
+                fragment == _cpe_vendor_product(cpe)
                 for fragment in fragments
                 for cpe in cpe_strings
             )

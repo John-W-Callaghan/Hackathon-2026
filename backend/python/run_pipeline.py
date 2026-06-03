@@ -20,7 +20,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 
 from matcher import load_cve_records, build_asset_cpe_map, match_cves
 from epss_loader import epss_raw
-from normalisation import KEV_PATH, NVD_2024_PATH, NVD_2025_PATH
+from normalisation import KEV_PATH
 import json as _json
 
 
@@ -59,11 +59,7 @@ def main():
 
     assets = [line.strip() for line in raw.splitlines() if line.strip()]
 
-    # Load both year files and merge — 2025 entries take priority in ordering
-    records = []
-    for path in (NVD_2025_PATH, NVD_2024_PATH):
-        if path.exists():
-            records.extend(load_cve_records(path))
+    records = load_cve_records()
 
     with open(KEV_PATH, encoding="utf-8") as fh:
         kev_data = _json.load(fh)

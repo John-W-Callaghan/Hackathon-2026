@@ -2,6 +2,7 @@ import { useState } from "react";
 import AssetInput from "./components/AssetInput.jsx";
 import ResultsTable from "./components/ResultsTable.jsx";
 import StatusBanner from "./components/StatusBanner.jsx";
+import UserGuide from "./components/UserGuide.jsx";
 import { postScan } from "./api.js";
 
 export default function App() {
@@ -45,6 +46,7 @@ export default function App() {
       </header>
 
       <main style={styles.main}>
+        <UserGuide />
         <AssetInput
           value={assetText}
           onChange={setAssetText}
@@ -62,6 +64,7 @@ export default function App() {
               onChange={(e) => setYearFilter(e.target.value)}
             >
               <option value="all">All years</option>
+              <option value="2026">2026 only</option>
               <option value="2025">2025 only</option>
               <option value="2024">2024 only</option>
             </select>

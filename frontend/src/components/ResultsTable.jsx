@@ -1,12 +1,27 @@
 import { useState } from "react";
 
+const KEV_TOOLTIP = {
+  title: "Known Exploited Vulnerabilities (KEV)",
+  body: "A US government list of flaws actively used in real attacks. \"YES\" means act now.",
+};
+
+const EPSS_TOOLTIP = {
+  title: "Exploit Prediction Scoring System (EPSS)",
+  body: "Likelihood (0–1) this flaw gets exploited within 30 days. Higher = more urgent.",
+};
+
+const CVSS_TOOLTIP = {
+  title: "Common Vulnerability Scoring System (CVSS)",
+  body: "Severity score from 0–10. 9–10 is Critical, 7–8.9 is High, 4–6.9 is Medium, below 4 is Low. Measures potential impact, not how likely it is to be exploited.",
+};
+
 const COLUMNS = [
   { key: "cve_id",           label: "CVE ID",           sortable: false },
   { key: "description",      label: "Description",      sortable: false },
   { key: "asset",            label: "Asset",            sortable: false },
-  { key: "cvss_score",       label: "CVSS",             sortable: true  },
-  { key: "epss_score",       label: "EPSS",             sortable: true  },
-  { key: "in_kev",           label: "KEV",              sortable: true  },
+  { key: "cvss_score",       label: "Risk Score",       sortable: true,  tooltip: CVSS_TOOLTIP },
+  { key: "epss_score",       label: "EPSS",             sortable: true,  tooltip: EPSS_TOOLTIP },
+  { key: "in_kev",           label: "KEV",              sortable: true, tooltip: KEV_TOOLTIP },
   { key: "risk_description", label: "Risk Description", sortable: false },
 ];
 
@@ -30,6 +45,14 @@ function sortRows(rows, key, dir) {
 export default function ResultsTable({ results, unmatched, yearFilter = "all" }) {
   const [sortKey, setSortKey] = useState("in_kev");
   const [sortDir, setSortDir] = useState("desc");
+  const [tooltipOpen, setTooltipOpen] = useState(null);
+  const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
+
+  function handleTooltipEnter(e, col) {
+    const rect = e.currentTarget.getBoundingClientRect();
+    setTooltipPos({ x: rect.left + rect.width / 2, y: rect.bottom + 8 });
+    setTooltipOpen(col.key);
+  }
 
   if (!results) return null;
 
@@ -63,6 +86,25 @@ export default function ResultsTable({ results, unmatched, yearFilter = "all" })
         </p>
       )}
 
+      {tooltipOpen && (() => {
+        const col = COLUMNS.find((c) => c.key === tooltipOpen);
+        return col?.tooltip ? (
+          <div
+            role="tooltip"
+            style={{
+              ...styles.tooltip,
+              position: "fixed",
+              left: tooltipPos.x,
+              top: tooltipPos.y,
+              transform: "translateX(-50%)",
+            }}
+          >
+            <strong style={styles.tooltipTitle}>{col.tooltip.title}</strong>
+            <p style={styles.tooltipBody}>{col.tooltip.body}</p>
+          </div>
+        ) : null;
+      })()}
+
       <div style={styles.tableWrapper}>
         <table style={styles.table}>
           <thead>
@@ -74,10 +116,24 @@ export default function ResultsTable({ results, unmatched, yearFilter = "all" })
                     ...styles.th,
                     ...(col.sortable ? styles.thSortable : {}),
                     ...(sortKey === col.key ? styles.thActive : {}),
+                    position: "relative",
                   }}
                   onClick={col.sortable ? () => handleSort(col.key) : undefined}
                 >
-                  {col.label}
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+                    {col.label}
+                    {col.tooltip && (
+                      <span
+                        style={styles.infoIcon}
+                        onMouseEnter={(e) => handleTooltipEnter(e, col)}
+                        onMouseLeave={() => setTooltipOpen(null)}
+                        onClick={(e) => e.stopPropagation()}
+                        aria-label={`What is ${col.label}?`}
+                      >
+                        ⓘ
+                      </span>
+                    )}
+                  </span>
                   {col.sortable && (
                     <span style={styles.arrow}>
                       {sortKey === col.key ? (sortDir === "desc" ? " ▼" : " ▲") : " ⇅"}
@@ -202,4 +258,43 @@ const styles = {
     fontSize: 12,
   },
   link: { color: "#1a3a6e", fontWeight: 600 },
+  infoIcon: {
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    width: 16,
+    height: 16,
+    fontSize: 13,
+    cursor: "default",
+    opacity: 0.85,
+    position: "relative",
+    userSelect: "none",
+  },
+  tooltip: {
+    width: 220,
+    background: "#1a1a2e",
+    color: "#f0f0f0",
+    borderRadius: 8,
+    padding: "12px 14px",
+    boxShadow: "0 4px 20px rgba(0,0,0,0.35)",
+    zIndex: 999,
+    pointerEvents: "none",
+    textAlign: "left",
+    lineHeight: 1.5,
+    fontWeight: 400,
+  },
+  tooltipTitle: {
+    display: "block",
+    fontSize: 13,
+    fontWeight: 700,
+    color: "#f8c94a",
+    marginBottom: 6,
+    letterSpacing: 0.2,
+  },
+  tooltipBody: {
+    margin: 0,
+    fontSize: 12,
+    color: "#ddd",
+    lineHeight: 1.6,
+  },
 };

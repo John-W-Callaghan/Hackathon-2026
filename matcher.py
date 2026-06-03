@@ -21,7 +21,7 @@ from normalisation import normalise, KEV_PATH
 # Paths
 # ---------------------------------------------------------------------------
 
-CVE_FILE = Path(__file__).parent / "dataset" / "NVD-CVE" / "CVE-2024.json"
+CVE_DIR = Path(__file__).parent / "dataset" / "NVD-CVE"
 
 # ---------------------------------------------------------------------------
 # Sample asset list (12 entries from the project brief)
@@ -47,14 +47,23 @@ SAMPLE_ASSETS = [
 # Stage 1: Load CVE records
 # ---------------------------------------------------------------------------
 
-def load_cve_records(path: Path = CVE_FILE) -> list[dict]:
-    """Load the NVD CVE JSON and return the flat list of CVE records."""
-    print(f"Loading CVE records from {path} ...")
-    with path.open(encoding="utf-8") as fh:
-        data = json.load(fh)
-    records = data["cve_items"]
-    print(f"  Loaded {len(records):,} CVE records.\n")
-    return records
+def load_cve_records(cve_dir: Path = CVE_DIR) -> list[dict]:
+    """Load all available NVD CVE JSON year files and return the merged list."""
+    year_files = sorted(cve_dir.glob("CVE-*.json"))
+    if not year_files:
+        raise SystemExit(f"No CVE-*.json files found in {cve_dir}")
+
+    all_records: list[dict] = []
+    for path in year_files:
+        print(f"Loading CVE records from {path.name} ...")
+        with path.open(encoding="utf-8") as fh:
+            data = json.load(fh)
+        records = data["cve_items"]
+        print(f"  {len(records):,} records")
+        all_records.extend(records)
+
+    print(f"  Total merged: {len(all_records):,} CVE records.\n")
+    return all_records
 
 
 # ---------------------------------------------------------------------------
@@ -206,7 +215,7 @@ def print_match_summary(matches: list[dict]) -> None:
 # ---------------------------------------------------------------------------
 
 def main() -> list[dict]:
-    # Stage 1: Load CVE records
+    # Stage 1: Load CVE records (all available years merged)
     records = load_cve_records()
 
     # Stage 2: Resolve asset names → CPE fragments

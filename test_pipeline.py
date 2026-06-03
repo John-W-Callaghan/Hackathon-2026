@@ -1,5 +1,4 @@
-"""
-test_pipeline.py — Unit tests for the CVE-to-My-Stack pipeline.
+'''test_pipeline.py — Unit tests for the CVE-to-My-Stack pipeline.
 
 Run:  python -m unittest test_pipeline -v
 
@@ -8,7 +7,7 @@ Covers all four stages:
   2. matcher.py        — record extraction and CVE matching
   3. epss_loader.py    — file parsing and score normalisation
   4. ranker.py         — sorting, risk sentences, CSV output
-"""
+'''
 
 import csv
 import io

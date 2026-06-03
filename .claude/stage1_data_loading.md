@@ -54,6 +54,11 @@ Produces three structures:
 
 333,997 CVEs loaded from the 2026-05-19 snapshot.
 
+**Duplicate file warning:** There are two copies of `epss_loader.py` — one at the project
+root and one in `dataset scrape/`. The root copy previously had a wrong path that did not
+account for its location relative to the `dataset/` directory; this has been fixed. Always
+import from the project-root copy (`from epss_loader import epss_raw`) in pipeline code.
+
 **Path note:** There are two copies of `epss_loader.py`:
 - `epss_loader.py` at project root — path: `Path(__file__).parent / "dataset" / "EPSS" / ...`
 - `dataset scrape/epss_loader.py` — path: `Path(__file__).parent.parent / "dataset" / "EPSS" / ...`

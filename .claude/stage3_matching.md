@@ -120,11 +120,36 @@ before the final demo if output is too noisy.
 1. **NVD CVE files missing** — `CVE-2024.json` and `CVE-2025.json` have not arrived yet.
    The matcher cannot run until at least one is present.
 
-2. **Wrong CVE file path** — `CVE_FILE = Path("data/CVE-2024.json")` needs to be updated
-   to `Path(__file__).parent / "dataset" / "NVD-CVE" / "CVE-2024.json"`.
-
-3. **KEV and EPSS not wired into `main()`** — the comment block in `main()` shows exactly
+2. **KEV and EPSS not wired into `main()`** — the comment block in `main()` shows exactly
    what to add. This is a two-line import change once the NVD data arrives.
+
+---
+
+## Bugs found and fixed
+
+Three bugs were identified and resolved in `matcher.py`:
+
+1. **Missing `build_asset_cpe_map()` definition** ✅ — The function was documented and
+   referenced in `main()` but never actually defined in the file. The full implementation
+   has been added before `match_cves()`. It calls `normalise()` for each asset, collects
+   resolved fragments, and explicitly logs any unmatched assets so failures are never silent.
+
+2. **Module-level code crashing on import** ✅ — Two lines ran at module scope and
+   referenced undefined variables `records` and `asset_cpe_map`:
+   ```python
+   from epss_loader import epss_raw
+   matches = match_cves(records, asset_cpe_map, epss_dict=epss_raw)
+   ```
+   These were leftover scratch lines that caused an immediate `NameError` whenever
+   `matcher.py` was imported by another module. Both lines have been removed entirely.
+   The correct wiring lives in the comment block inside `main()`.
+
+3. **Wrong `CVE_FILE` path** ✅ — `Path("data/CVE-2024.json")` was a relative path that
+   only worked if the script was run from a specific directory. Fixed to:
+   ```python
+   CVE_FILE = Path(__file__).parent / "dataset" / "NVD-CVE" / "CVE-2024.json"
+   ```
+   This resolves correctly regardless of the working directory.
 
 ---
 
@@ -137,6 +162,8 @@ before the final demo if output is too noisy.
 - [x] `build_asset_cpe_map()` implemented with unmatched-asset logging
 - [x] `match_cves()` implemented with optional KEV/EPSS parameters
 - [x] Return shape correct for Stage 4 ranker
-- [ ] Fix `CVE_FILE` path
+- [x] Fix `CVE_FILE` path
+- [x] Remove module-level crash lines (`from epss_loader import epss_raw` / stray `match_cves` call)
+- [x] Add missing `build_asset_cpe_map()` function definition
 - [ ] Wire KEV and EPSS into `main()` once NVD data arrives
 - [ ] End-to-end run against real CVE data

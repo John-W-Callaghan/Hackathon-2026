@@ -4,6 +4,14 @@
 
 ---
 
+## Prerequisites before starting Stage 4
+
+- matcher.py bugs are now fixed (missing `build_asset_cpe_map()`, module-level crash lines, wrong `CVE_FILE` path) ✅
+- NVD CVE files (`CVE-2024.json` / `CVE-2025.json`) still missing — Stage 4 cannot be fully tested without them ❌
+- `epss_loader.py` and `load_kev.py` are both working ✅
+
+---
+
 ## What this stage does
 
 Takes the list of CVE-asset matches from Stage 3, applies EPSS scores and KEV flags to

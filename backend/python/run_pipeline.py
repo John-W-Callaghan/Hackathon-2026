@@ -10,7 +10,8 @@ import json
 import sys
 import os
 
-# Redirect stdout temporarily so pipeline print() calls go to stderr
+# Keep real stdout for the final JSON write; redirect sys.stdout → stderr
+# for the entire module so every print() in the pipeline goes to stderr.
 _real_stdout = sys.stdout
 sys.stdout = sys.stderr
 
@@ -19,11 +20,8 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 
 from matcher import load_cve_records, build_asset_cpe_map, match_cves
 from epss_loader import epss_raw
-from normalisation import KEV_PATH
+from normalisation import KEV_PATH, NVD_2024_PATH, NVD_2025_PATH
 import json as _json
-
-# Restore stdout for our final JSON output
-sys.stdout = _real_stdout
 
 
 def rank(matches: list[dict]) -> list[dict]:
@@ -56,13 +54,16 @@ def risk_sentence(m: dict) -> str:
 def main():
     raw = sys.stdin.read().strip()
     if not raw:
-        print(json.dumps({"results": [], "unmatched": []}))
+        _real_stdout.write(json.dumps({"results": [], "unmatched": []}) + "\n")
         return
 
     assets = [line.strip() for line in raw.splitlines() if line.strip()]
 
-    # Load data (diagnostic output goes to stderr via the redirect above)
-    records = load_cve_records()
+    # Load both year files and merge — 2025 entries take priority in ordering
+    records = []
+    for path in (NVD_2025_PATH, NVD_2024_PATH):
+        if path.exists():
+            records.extend(load_cve_records(path))
 
     with open(KEV_PATH, encoding="utf-8") as fh:
         kev_data = _json.load(fh)
@@ -86,7 +87,8 @@ def main():
             "risk_description": risk_sentence(m),
         })
 
-    print(json.dumps({"results": results, "unmatched": unmatched}))
+    # Write JSON directly to the real stdout — bypasses the stderr redirect
+    _real_stdout.write(json.dumps({"results": results, "unmatched": unmatched}) + "\n")
 
 
 if __name__ == "__main__":

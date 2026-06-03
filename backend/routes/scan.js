@@ -2,12 +2,16 @@ import { Router } from "express";
 import { spawn } from "child_process";
 import { fileURLToPath } from "url";
 import path from "path";
+import fs from "fs";
 
 const router = Router();
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PIPELINE_SCRIPT = path.resolve(__dirname, "../python/run_pipeline.py");
 // Project root is two levels up from backend/routes/
 const PROJECT_ROOT = path.resolve(__dirname, "../../");
+// Use the venv Python if present, fall back to system python3
+const VENV_PYTHON = path.join(PROJECT_ROOT, ".venv", "bin", "python3");
+const PYTHON = fs.existsSync(VENV_PYTHON) ? VENV_PYTHON : "python3";
 
 router.post("/scan", (req, res) => {
   const { assets } = req.body;
@@ -16,7 +20,7 @@ router.post("/scan", (req, res) => {
     return res.status(400).json({ error: "assets must be a non-empty array" });
   }
 
-  const py = spawn("python3", [PIPELINE_SCRIPT], { cwd: PROJECT_ROOT });
+  const py = spawn(PYTHON, [PIPELINE_SCRIPT], { cwd: PROJECT_ROOT });
 
   let stdout = "";
   let stderr = "";

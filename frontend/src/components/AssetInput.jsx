@@ -20,6 +20,11 @@ export default function AssetInput({ value, onChange, onScan, loading }) {
         <button style={styles.uploadBtn} onClick={() => fileRef.current.click()}>
           Upload .txt
         </button>
+        {value && (
+          <button style={styles.clearBtn} onClick={() => onChange("")}>
+            Clear
+          </button>
+        )}
         <input
           ref={fileRef}
           type="file"
@@ -67,6 +72,15 @@ const styles = {
     border: "1px solid #aac",
     borderRadius: 5,
     background: "#f0f4ff",
+  },
+  clearBtn: {
+    padding: "6px 14px",
+    fontSize: 13,
+    cursor: "pointer",
+    border: "1px solid #cca",
+    borderRadius: 5,
+    background: "#fff8f0",
+    color: "#884400",
   },
   scanBtn: {
     alignSelf: "flex-start",

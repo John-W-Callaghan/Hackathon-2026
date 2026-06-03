@@ -10,6 +10,7 @@ export default function App() {
   const [unmatched, setUnmatched] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [yearFilter, setYearFilter] = useState("all");
 
   async function handleScan() {
     const assets = assetText
@@ -51,7 +52,30 @@ export default function App() {
           loading={loading}
         />
         <StatusBanner loading={loading} error={error} />
-        <ResultsTable results={results} unmatched={unmatched} />
+        {results && (
+          <div style={styles.filterRow}>
+            <label style={styles.filterLabel} htmlFor="year-filter">CVE Year</label>
+            <select
+              id="year-filter"
+              style={styles.filterSelect}
+              value={yearFilter}
+              onChange={(e) => setYearFilter(e.target.value)}
+            >
+              <option value="all">All years</option>
+              <option value="2025">2025 only</option>
+              <option value="2024">2024 only</option>
+            </select>
+          </div>
+        )}
+        <ResultsTable
+          results={results === null ? null : (
+            yearFilter === "all"
+              ? results
+              : results.filter((r) => r.cve_id.startsWith(`CVE-${yearFilter}-`))
+          )}
+          unmatched={unmatched}
+          yearFilter={yearFilter}
+        />
       </main>
 
       <style>{`
@@ -76,5 +100,24 @@ const styles = {
     maxWidth: 1100,
     margin: "0 auto",
     padding: "28px 40px",
+  },
+  filterRow: {
+    display: "flex",
+    alignItems: "center",
+    gap: 10,
+    margin: "16px 0 4px",
+  },
+  filterLabel: {
+    fontSize: 14,
+    fontWeight: 600,
+    color: "#333",
+  },
+  filterSelect: {
+    padding: "6px 12px",
+    fontSize: 14,
+    border: "1px solid #aac",
+    borderRadius: 5,
+    background: "#f0f4ff",
+    cursor: "pointer",
   },
 };

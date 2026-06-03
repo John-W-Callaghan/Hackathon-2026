@@ -33,10 +33,14 @@ Target users are non-specialist, resource-constrained IT operators: solo SMB sys
 ```
 Hackathon-2026/
 ├── .claude/
-│   ├── claude.md           # This file
+│   ├── CLAUDE.md           # This file
 │   └── project.md          # Full project brief (generated from PDF)
 ├── dataset/
-│   └── NVD-CVE/            # NVD JSON files go here
+│   ├── CISA-KEV/
+│   │   └── known_exploited_vulnerabilities.json   # ✅ present
+│   ├── CPE-DICT/
+│   │   └── nvdcpe-2.0-chunk-00001.json … chunk-00016.json  # ✅ present (16 × 50 MB)
+│   └── NVD-CVE/            # ❌ empty — CVE-2024.json / CVE-2025.json go here
 ├── dataset scrape/
 │   └── load_kev.py         # CISA KEV downloader/parser (stdlib only)
 ├── CVE-to-My-Stack_Translator_Hackathon_Project_Guide_v01_new.pdf
@@ -45,17 +49,19 @@ Hackathon-2026/
 
 ---
 
-## Expected Data Files (provided on hackathon day)
+## Data Files — Status
 
-| File | Format | Location |
-|------|--------|----------|
-| `CVE-2024.json` | JSON | `dataset/NVD-CVE/` |
-| `CVE-2025.json` | JSON | `dataset/NVD-CVE/` |
-| `known_exploited_vulnerabilities.json` | JSON | `dataset/` |
-| `epss_scores-[date].csv` | CSV (.gz) | `dataset/` |
-| `official-cpe-dictionary_v2.3.xml` | XML | `dataset/` |
-| `sample_asset_list.txt` | Plain text | project root |
-| `starter_notebook.ipynb` | Jupyter | project root |
+| File | Format | Location | Status |
+|------|--------|----------|--------|
+| `CVE-2024.json` | JSON | `dataset/NVD-CVE/` | ❌ missing |
+| `CVE-2025.json` | JSON | `dataset/NVD-CVE/` | ❌ missing |
+| `known_exploited_vulnerabilities.json` | JSON | `dataset/CISA-KEV/` | ✅ present |
+| `epss_scores-[date].csv` | CSV | `dataset/` | ❌ missing |
+| `nvdcpe-2.0-chunk-00001…00016.json` | JSON (16 chunks) | `dataset/CPE-DICT/` | ✅ present |
+| `sample_asset_list.txt` | Plain text | project root | ❌ missing |
+| `starter_notebook.ipynb` | Jupyter | project root | ❌ missing |
+
+**CPE dictionary note:** The dictionary was downloaded as 16 × 50 MB JSON 2.0 chunks (NVD API format) rather than the single `official-cpe-dictionary_v2.3.xml` the guide describes. The data is equivalent. Loaders must iterate over all 16 chunk files. Key fields: `cpe.cpeName`, `cpe.titles[].title`.
 
 No external API calls during the hackathon. All data must come from these local files.
 

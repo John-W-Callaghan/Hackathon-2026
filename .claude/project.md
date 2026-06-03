@@ -115,7 +115,7 @@ All data is pre-downloaded and provided at the start of the session. No external
 | NVD CVE data | github.com/fkie-cad/nvd-json-data-feeds | JSON (.xz) | Primary CVE database with CVSS scores and CPE applicability |
 | CISA KEV catalogue | cisa.gov/known-exploited-vulnerabilities | JSON | Flags confirmed actively exploited CVEs |
 | EPSS scores | epss.empiricalsecurity.com | CSV (.gz) | Daily exploitation probability scores per CVE |
-| CPE dictionary | nvd.nist.gov/vuln/data-feeds | XML or JSON | Reference for official product identifiers |
+| CPE dictionary | nvd.nist.gov/vuln/data-feeds | JSON 2.0 (16 chunks) | Reference for official product identifiers |
 
 **Note:** NVD legacy 1.1 JSON feeds were retired in August 2025. The hackathon uses the Fraunhofer FKIE community reconstruction, which mirrors the NVD data in the same per-year JSON format.
 
@@ -123,13 +123,13 @@ All data is pre-downloaded and provided at the start of the session. No external
 
 | File | Format | Description |
 |------|--------|-------------|
-| CVE-2024.json | JSON | NVD CVE data for 2024 |
-| CVE-2025.json | JSON | NVD CVE data for 2025 |
-| known_exploited_vulnerabilities.json | JSON | CISA KEV catalogue |
-| epss_scores-[date].csv | CSV | EPSS scores for all CVEs |
-| official-cpe-dictionary_v2.3.xml | XML | CPE dictionary for reference |
-| sample_asset_list.txt | Plain text | Sample asset list for testing |
-| starter_notebook.ipynb | Jupyter | Starter notebook with file loading code |
+| CVE-2024.json | JSON | NVD CVE data for 2024 — **❌ missing** |
+| CVE-2025.json | JSON | NVD CVE data for 2025 — **❌ missing** |
+| known_exploited_vulnerabilities.json | JSON | CISA KEV catalogue — **✅ present** at `dataset/CISA-KEV/` |
+| epss_scores-[date].csv | CSV | EPSS scores for all CVEs — **❌ missing** |
+| nvdcpe-2.0-chunk-00001…00016.json | JSON 2.0 | CPE dictionary (16 × 50 MB chunks) — **✅ present** at `dataset/CPE-DICT/` |
+| sample_asset_list.txt | Plain text | Sample asset list for testing — **❌ missing** |
+| starter_notebook.ipynb | Jupyter | Starter notebook with file loading code — **❌ missing** |
 
 ---
 

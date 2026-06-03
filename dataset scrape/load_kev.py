@@ -9,7 +9,7 @@ import urllib.error
 from pathlib import Path
 
 KEV_URL = "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json"
-LOCAL_FILE = Path("known_exploited_vulnerabilities.json")
+LOCAL_FILE = Path(__file__).parent.parent / "dataset" / "CISA-KEV" / "known_exploited_vulnerabilities.json"
 SANITY_CVE = "CVE-2021-44228"  # Log4Shell — well-known entry for sanity checking
 
 
@@ -30,6 +30,8 @@ def download_kev(url: str, dest: Path) -> None:
         # DNS failure, connection refused, timeout, etc.
         raise SystemExit(f"Network error: {exc.reason}") from exc
 
+    # Create parent directories (dataset/CISA-KEV/) if they don't exist yet
+    dest.parent.mkdir(parents=True, exist_ok=True)
     dest.write_bytes(raw)
     print(f"Saved → {dest}  ({len(raw):,} bytes)\n")
 

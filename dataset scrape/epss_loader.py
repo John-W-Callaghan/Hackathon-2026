@@ -1,6 +1,6 @@
 """
 EPSS Score Loader & Normaliser
-Loads epss_scores-2026-05-19_csv.gz into Python dicts and normalises scores.
+Loads epss_scores-2026-05-19.csv.gz into Python dicts and normalises scores.
 
 Dicts produced:
   epss_raw        : { cve_id -> float }   raw EPSS probability (0–1)
@@ -14,8 +14,8 @@ import gzip       # for opening the compressed .gz file
 from pathlib import Path  # cleaner cross-platform file path handling
 
 
-# Path to the EPSS data file — update this if your file is elsewhere
-FILE_PATH = Path("epss_scores-2026-05-19_csv.gz")
+# Path to the EPSS data file — resolved relative to this script
+FILE_PATH = Path(__file__).parent.parent / "dataset" / "EPSS" / "epss_scores-2026-05-19.csv.gz"
 
 
 def load_epss(path: Path) -> tuple[dict, dict]:

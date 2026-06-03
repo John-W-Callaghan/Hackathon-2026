@@ -13,7 +13,8 @@ CPE_DICT_PATH  = DATA_DIR / "official-cpe-dictionary_v2.3.xml"
 KEV_PATH       = DATA_DIR / "CISA-KEV" / "known_exploited_vulnerabilities.json"
 NVD_2024_PATH  = DATA_DIR / "NVD-CVE" / "CVE-2024.json"
 NVD_2025_PATH  = DATA_DIR / "NVD-CVE" / "CVE-2025.json"
-EPSS_GLOB      = "epss_scores-*.csv"   # use DATA_DIR.glob(EPSS_GLOB) to find it
+EPSS_DIR       = DATA_DIR / "EPSS"
+EPSS_GLOB      = "epss_scores-*.csv.gz"   # use EPSS_DIR.glob(EPSS_GLOB) to find it
 
 # ============================================================
 # CPE MAP — verified from CVE-2024.json on 2026-06-03

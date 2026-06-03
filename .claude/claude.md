@@ -35,14 +35,23 @@ Hackathon-2026/
 ├── .claude/
 │   ├── CLAUDE.md           # This file
 │   └── project.md          # Full project brief (generated from PDF)
-├── dataset/
+├── dataset/                # gitignored — large data files
 │   ├── CISA-KEV/
 │   │   └── known_exploited_vulnerabilities.json   # ✅ present
 │   ├── CPE-DICT/
 │   │   └── nvdcpe-2.0-chunk-00001.json … chunk-00016.json  # ✅ present (16 × 50 MB)
-│   └── NVD-CVE/            # ❌ empty — CVE-2024.json / CVE-2025.json go here
-├── dataset scrape/
-│   └── load_kev.py         # CISA KEV downloader/parser (stdlib only)
+│   ├── EPSS/
+│   │   └── epss_scores-2026-05-19.csv.gz          # ✅ present
+│   └── NVD-CVE/
+│       └── CVE-2024.json                          # ✅ present
+├── dataset scrape/         # data acquisition scripts (stdlib only)
+│   ├── load_kev.py         # CISA KEV downloader/parser
+│   └── load_cve.py         # NVD CVE loader/parser
+├── epss_loader.py          # EPSS module — imported by matcher.py
+├── normalisation.py        # Stage 1: asset name → CPE fragments
+├── matcher.py              # Stage 2–3: CVE matching + enrichment
+├── ranker.py               # Stage 4: ranking, risk sentences, CSV output
+├── test_pipeline.py        # Unit tests (python -m unittest test_pipeline -v)
 ├── CVE-to-My-Stack_Translator_Hackathon_Project_Guide_v01_new.pdf
 └── README.md
 ```
@@ -53,10 +62,10 @@ Hackathon-2026/
 
 | File | Format | Location | Status |
 |------|--------|----------|--------|
-| `CVE-2024.json` | JSON | `dataset/NVD-CVE/` | ❌ missing |
+| `CVE-2024.json` | JSON | `dataset/NVD-CVE/` | ✅ present |
 | `CVE-2025.json` | JSON | `dataset/NVD-CVE/` | ❌ missing |
 | `known_exploited_vulnerabilities.json` | JSON | `dataset/CISA-KEV/` | ✅ present |
-| `epss_scores-[date].csv` | CSV | `dataset/` | ❌ missing |
+| `epss_scores-2026-05-19.csv.gz` | CSV.gz | `dataset/EPSS/` | ✅ present |
 | `nvdcpe-2.0-chunk-00001…00016.json` | JSON (16 chunks) | `dataset/CPE-DICT/` | ✅ present |
 | `sample_asset_list.txt` | Plain text | project root | ❌ missing |
 | `starter_notebook.ipynb` | Jupyter | project root | ❌ missing |

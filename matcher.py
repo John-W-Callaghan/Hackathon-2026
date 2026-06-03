@@ -205,12 +205,12 @@ def print_match_summary(matches: list[dict]) -> None:
 # Main — standalone run; teammates call match_cves() with their data later
 # ---------------------------------------------------------------------------
 
-def main() -> list[dict]:
+def main(assets: list[str] | None = None) -> list[dict]:
     # Stage 1: Load CVE records
     records = load_cve_records()
 
     # Stage 2: Resolve asset names → CPE fragments
-    asset_cpe_map = build_asset_cpe_map(SAMPLE_ASSETS)
+    asset_cpe_map = build_asset_cpe_map(assets or SAMPLE_ASSETS)
 
     # Load KEV — read directly from local JSON, no network call
     with KEV_PATH.open(encoding="utf-8") as fh:

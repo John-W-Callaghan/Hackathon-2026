@@ -8,6 +8,7 @@ entries first then by EPSS descending, attaches a plain-English risk sentence,
 writes a CSV report, and prints a console summary table.
 """
 
+import argparse
 import csv
 from pathlib import Path
 
@@ -142,16 +143,23 @@ def print_stats(ranked: list[dict]) -> None:
 # Main — can be run standalone or called by a future pipeline entry point
 # ---------------------------------------------------------------------------
 
-def main(matches: list[dict] | None = None) -> list[dict]:
+def _read_asset_file(path: Path) -> list[str]:
+    """Read one asset name per non-blank, non-comment line."""
+    lines = path.read_text(encoding="utf-8").splitlines()
+    return [line.strip() for line in lines if line.strip() and not line.startswith("#")]
+
+
+def main(matches: list[dict] | None = None, assets: list[str] | None = None) -> list[dict]:
     """
     Rank and output CVE matches.
 
     If matches is None, runs the full upstream pipeline (matcher.py → main())
     to produce them.  Pass a pre-built list to skip the upstream stages.
+    Pass assets to override the default hardcoded asset list.
     """
     if matches is None:
         from matcher import main as run_matcher
-        matches = run_matcher()
+        matches = run_matcher(assets=assets)
 
     if not matches:
         print("No matches to rank — check that CVE data and asset list are loaded.")
@@ -165,4 +173,21 @@ def main(matches: list[dict] | None = None) -> list[dict]:
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(
+        description="CVE-to-My-Stack Translator — scan your assets for known vulnerabilities."
+    )
+    parser.add_argument(
+        "assets",
+        nargs="?",
+        help="Path to a plain-text asset list file (one product per line). "
+             "Defaults to the built-in sample list if omitted.",
+    )
+    args = parser.parse_args()
+
+    asset_list = None
+    if args.assets:
+        asset_path = Path(args.assets)
+        asset_list = _read_asset_file(asset_path)
+        print(f"Loaded {len(asset_list)} assets from {asset_path}\n")
+
+    main(assets=asset_list)

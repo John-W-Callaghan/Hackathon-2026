@@ -120,9 +120,6 @@ before the final demo if output is too noisy.
 1. **NVD CVE files missing** — `CVE-2024.json` and `CVE-2025.json` have not arrived yet.
    The matcher cannot run until at least one is present.
 
-2. **KEV and EPSS not wired into `main()`** — the comment block in `main()` shows exactly
-   what to add. This is a two-line import change once the NVD data arrives.
-
 ---
 
 ## Bugs found and fixed
@@ -165,5 +162,5 @@ Three bugs were identified and resolved in `matcher.py`:
 - [x] Fix `CVE_FILE` path
 - [x] Remove module-level crash lines (`from epss_loader import epss_raw` / stray `match_cves` call)
 - [x] Add missing `build_asset_cpe_map()` function definition
-- [ ] Wire KEV and EPSS into `main()` once NVD data arrives
+- [x] Wire KEV and EPSS into `main()` — KEV loaded via `KEV_PATH` from `normalisation.py`; EPSS via `from epss_loader import epss_raw`
 - [ ] End-to-end run against real CVE data

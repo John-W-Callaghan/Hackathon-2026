@@ -15,7 +15,7 @@ import json
 from collections import Counter
 from pathlib import Path
 
-from normalisation import normalise
+from normalisation import normalise, KEV_PATH
 
 # ---------------------------------------------------------------------------
 # Paths
@@ -212,21 +212,18 @@ def main() -> list[dict]:
     # Stage 2: Resolve asset names → CPE fragments
     asset_cpe_map = build_asset_cpe_map(SAMPLE_ASSETS)
 
-    # Stage 3: Match (standalone — no KEV or EPSS yet)
-    #
-    # Once teammates are ready, replace the call below with:
-    #
-    #   from dataset_scrape.load_kev import load_vulnerabilities, build_lookup_structures
-    #   vulns   = load_vulnerabilities(Path("data/known_exploited_vulnerabilities.json"))
-    #   kev_set, _ = build_lookup_structures(vulns)
-    #
-    #   import pandas as pd
-    #   epss_df   = pd.read_csv("data/epss_scores.csv", comment="#")
-    #   epss_dict = dict(zip(epss_df["cve"], epss_df["epss"]))
-    #
-    #   matches = match_cves(records, asset_cpe_map, kev_set=kev_set, epss_dict=epss_dict)
-    #
-    matches = match_cves(records, asset_cpe_map)
+    # Load KEV — read directly from local JSON, no network call
+    with KEV_PATH.open(encoding="utf-8") as fh:
+        kev_data = json.load(fh)
+    kev_set = {v["cveID"] for v in kev_data.get("vulnerabilities", [])}
+    print(f"  Loaded {len(kev_set):,} KEV entries.\n")
+
+    # Load EPSS — epss_loader populates epss_raw at import time
+    from epss_loader import epss_raw as epss_dict
+    print(f"  Loaded {len(epss_dict):,} EPSS scores.\n")
+
+    # Match with full enrichment
+    matches = match_cves(records, asset_cpe_map, kev_set=kev_set, epss_dict=epss_dict)
 
     # Stage 4: Diagnostic summary
     print_match_summary(matches)

@@ -32,15 +32,11 @@ directly.
 
 Reads `CVE-2024.json` and returns the flat list under the `"cve_items"` key.
 
-**Known issue — path is wrong:**
-```python
-CVE_FILE = Path("data/CVE-2024.json")   # ← incorrect
-```
-Should be:
 ```python
 CVE_FILE = Path(__file__).parent / "dataset" / "NVD-CVE" / "CVE-2024.json"
 ```
-Fix this when the NVD files arrive.
+
+Path is resolved relative to the script so it works from any working directory.
 
 ### `extract_cpe_strings(record)`
 
@@ -96,13 +92,15 @@ Returns a list of dicts with shape:
 ```
 
 `kev_set` and `epss_dict` are optional — the matcher works standalone without them.
-When the loaders are ready, pass them in:
+Both are now wired into `main()`:
 
 ```python
-from dataset_scrape.load_kev import load_vulnerabilities, build_lookup_structures
-vulns = load_vulnerabilities(KEV_PATH)
-kev_set, _ = build_lookup_structures(vulns)
+# KEV — loaded directly from local JSON via KEV_PATH (imported from normalisation.py)
+with KEV_PATH.open(encoding="utf-8") as fh:
+    kev_data = json.load(fh)
+kev_set = {v["cveID"] for v in kev_data.get("vulnerabilities", [])}
 
+# EPSS — epss_loader populates epss_raw at import time
 from epss_loader import epss_raw as epss_dict
 
 matches = match_cves(records, asset_cpe_map, kev_set=kev_set, epss_dict=epss_dict)
@@ -139,7 +137,7 @@ Three bugs were identified and resolved in `matcher.py`:
    ```
    These were leftover scratch lines that caused an immediate `NameError` whenever
    `matcher.py` was imported by another module. Both lines have been removed entirely.
-   The correct wiring lives in the comment block inside `main()`.
+   KEV and EPSS are now properly wired inside `main()` using real working code.
 
 3. **Wrong `CVE_FILE` path** ✅ — `Path("data/CVE-2024.json")` was a relative path that
    only worked if the script was run from a specific directory. Fixed to:

@@ -1,0 +1,12 @@
+Microsoft 365 Apps for Business
+Windows Server 2022
+Windows 10 Pro
+Adobe Acrobat Reader DC
+Cisco IOS XE
+VMware vSphere
+Google Chrome
+OpenSSL
+Apache HTTP Server
+Zoom
+WordPress
+Moodle

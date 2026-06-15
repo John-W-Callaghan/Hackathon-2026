@@ -18,8 +18,14 @@ import gzip       # for opening the compressed .gz file
 from pathlib import Path  # cleaner cross-platform file path handling
 
 
-# Path to the EPSS data file — resolved relative to this script
-FILE_PATH = Path(__file__).parent / "dataset" / "EPSS" / "epss_scores-2026-05-19.csv.gz"
+# Find the most recent EPSS file in the EPSS directory (filename contains the date)
+_EPSS_DIR = Path(__file__).parent / "dataset" / "EPSS"
+_candidates = sorted(_EPSS_DIR.glob("epss_scores-*.csv.gz"), reverse=True)
+if not _candidates:
+    raise FileNotFoundError(
+        f"No EPSS file found in {_EPSS_DIR}. Run `python download_datasets.py` first."
+    )
+FILE_PATH = _candidates[0]
 
 
 def load_epss(path: Path) -> tuple[dict, dict]:

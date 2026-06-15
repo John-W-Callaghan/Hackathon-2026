@@ -47,25 +47,22 @@ SAMPLE_ASSETS = [
 # Stage 1: Load CVE records
 # ---------------------------------------------------------------------------
 
-def load_cve_records(directory: Path = CVE_DIR) -> list[dict]:
-    """
-    Load all CVE-YYYY.json files found in directory and return the combined
-    list of records. Files are processed in filename order (2024 before 2025).
-    """
-    cve_files = sorted(directory.glob("CVE-*.json"))
-    if not cve_files:
-        raise SystemExit(f"No CVE JSON files found in {directory}")
+def load_cve_records(cve_dir: Path = CVE_DIR) -> list[dict]:
+    """Load all available NVD CVE JSON year files and return the merged list."""
+    year_files = sorted(cve_dir.glob("CVE-*.json"))
+    if not year_files:
+        raise SystemExit(f"No CVE-*.json files found in {cve_dir}")
 
     all_records: list[dict] = []
-    for path in cve_files:
-        print(f"Loading CVE records from {path} ...")
+    for path in year_files:
+        print(f"Loading CVE records from {path.name} ...")
         with path.open(encoding="utf-8") as fh:
             data = json.load(fh)
         records = data["cve_items"]
-        print(f"  Loaded {len(records):,} records.")
+        print(f"  {len(records):,} records")
         all_records.extend(records)
 
-    print(f"  Total: {len(all_records):,} CVE records across {len(cve_files)} file(s).\n")
+    print(f"  Total merged: {len(all_records):,} CVE records.\n")
     return all_records
 
 
@@ -234,7 +231,7 @@ def print_match_summary(matches: list[dict]) -> None:
 # ---------------------------------------------------------------------------
 
 def main(assets: list[str] | None = None) -> list[dict]:
-    # Stage 1: Load CVE records
+    # Stage 1: Load CVE records (all available years merged)
     records = load_cve_records()
 
     # Stage 2: Resolve asset names → CPE fragments

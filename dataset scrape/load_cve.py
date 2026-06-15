@@ -7,8 +7,8 @@ import json
 from pathlib import Path
 
 CVE_DIR     = Path(__file__).parent.parent / "dataset" / "NVD-CVE"
-DEFAULT_YEAR = 2024
-SANITY_CVE  = "CVE-2024-21762"  # FortiOS — high-profile 2024 CVE for sanity checking
+DEFAULT_YEAR = 2026
+SANITY_CVE  = "CVE-2024-21762"  # FortiOS — falls back gracefully if not in 2026 file
 
 
 # ---------------------------------------------------------------------------

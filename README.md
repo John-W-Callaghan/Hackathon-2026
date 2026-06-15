@@ -23,22 +23,29 @@ Every day, hundreds of new CVEs (security flaws) are published. Most of them won
 ### Requirements
 
 - Python 3.10 or later
-- Install the one dependency:
+- Install dependencies:
 
 ```bash
-pip install rapidfuzz
+pip install -r requirements.txt
 ```
 
-### Data files needed
+### Data files
 
-Place these files in the folders shown before running (all gitignored due to size):
+Dataset files are not stored in the repository (they are too large). On the first run, the backend automatically downloads them from public sources:
 
-| File | Where it goes |
-|------|---------------|
-| `CVE-2024.json` (NVD CVE data) | `dataset/NVD-CVE/` |
-| `epss_scores-[date].csv.gz` | `dataset/EPSS/` |
-| `known_exploited_vulnerabilities.json` | `dataset/CISA-KEV/` |
-| `nvdcpe-2.0-chunk-00001…00016.json` | `dataset/CPE-DICT/` |
+| Dataset | Source | Size |
+|---------|--------|------|
+| CISA KEV | cisa.gov | ~1 MB |
+| NVD CVE 2024–2026 | github.com/fkie-cad/nvd-json-data-feeds | ~300 MB |
+| EPSS scores | epss.cyentia.com | ~30 MB |
+
+**The first startup will take a few minutes** while files download. Subsequent runs are instant — existing files are never re-downloaded.
+
+To download manually before starting the server:
+
+```bash
+python download_datasets.py
+```
 
 ### Run the full pipeline
 
@@ -55,6 +62,37 @@ python -m unittest test_pipeline -v
 ```
 
 All 51 tests should pass. No data files are needed to run the tests.
+
+---
+
+## Web app
+
+A browser front end is available, backed by a Flask API.
+
+### Backend (Flask)
+
+```bash
+python3 -m venv .venv
+.venv/bin/pip install -r requirements.txt
+.venv/bin/python3 backend/app.py
+```
+
+This loads the CVE/EPSS/KEV data once at startup and serves:
+
+- `GET /api/health` — health check
+- `POST /api/scan` — body `{"assets": ["Windows 10", "Google Chrome", ...]}`, returns `{"results": [...], "unmatched": [...]}`
+
+The server listens on `http://localhost:3001`.
+
+### Frontend (Vite + React)
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+The dev server runs on `http://localhost:5173` and proxies `/api` requests to the Flask backend on port 3001.
 
 ---
 
@@ -128,10 +166,14 @@ Hackathon-2026/
 ├── dataset scrape/           # Scripts for downloading/refreshing data files
 │   ├── load_kev.py
 │   └── load_cve.py
+├── backend/                  # Flask API serving the pipeline to the web app
+│   └── app.py
+├── frontend/                 # Vite + React web app
 ├── normalisation.py          # Stage 1: product name → CPE identifier
 ├── matcher.py                # Stage 2–3: CVE matching and enrichment
 ├── ranker.py                 # Stage 4: ranking, risk sentences, CSV output
 ├── epss_loader.py            # EPSS score loader (imported by matcher)
 ├── test_pipeline.py          # Unit tests
+├── requirements.txt          # Python dependencies (rapidfuzz, flask, etc.)
 └── cve_report.csv            # Generated output (created when you run ranker.py)
 ```
